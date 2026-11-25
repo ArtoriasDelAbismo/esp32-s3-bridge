@@ -1,27 +1,37 @@
 #include <Arduino.h>
+#include <USB.h>
 
-int counter = 0;
 bool ledOn = false;
-
+// create an object of type USBCDC (USB serial port). The type is a whole device 
+USBCDC USBSerial;
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("Hello from esp32-s3!");
+    // prepares de serial port
+    USBSerial.begin();
+    // Starts the USB hardware
+    USB.begin();
+    Serial.println("Bridge ready");
 }
 
 
 void loop() {
-    ledOn = !ledOn;
-    if (ledOn)
+    // while theres bytes to be read
+    while (USBSerial.available()) 
     {
-        neopixelWrite(48, 20, 0, 0);
-    } else {
-        neopixelWrite(48, 0, 0, 0);
+        ledOn = !ledOn;
+        if (ledOn) {
+            rgbLedWrite(48, 0, 20, 0);
+        } else {
+            rgbLedWrite(48, 0, 0, 0);
+        }
+
+        // Reads one byte (one typed character)
+        int c = USBSerial.read();
+        // Sends one byte back out
+        USBSerial.write(c);
+        // Sends it to the debug port
+        Serial.write(c);
     }
-
-    Serial.println("count: ");
-    Serial.println(counter++);
-
-    delay(500);
     
 }
